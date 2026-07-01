@@ -1,66 +1,52 @@
 # Playwright MCP Cursor
 
-Este repositório demonstra como integrar o [Playwright](https://playwright.dev/) com o **Model Context Protocol (MCP)** e inclui um exemplo de paginação usando cursor na API do GitHub.
+This repository demonstrates how to use Playwright with the **Model Context Protocol (MCP)**. MCP is a standard that exposes browser automation capabilities as structured tool calls so that large‑language models can interact with websites and APIs. The included example shows how to perform cursor‑based pagination against the GitHub GraphQL API, but you can adapt the test to any site with pagination (for example, Amazon product listings).
 
-## Sobre o MCP
+## Project structure
 
-O MCP (Model Context Protocol) é um protocolo aberto que permite que modelos de linguagem interajam com navegadores e APIs por meio de mensagens estruturadas. O pacote `@playwright/mcp` disponibiliza um servidor que expõe as capacidades do Playwright em um formato que pode ser consumido por modelos de IA. Para mais detalhes consulte a [documentação oficial](https://github.com/microsoft/playwright-mcp).
+- **package.json** – defines the npm dependencies and test scripts.
+- **playwright.config.ts** – Playwright configuration (baseURL, test directory, reporter, etc.).
+- **tsconfig.json** – TypeScript configuration for the project.
+- **tests/mcp-cursor.spec.ts** – automated test demonstrating how to page through API results using cursors.
 
-Neste projeto é possível executar os testes localmente com `npx playwright test` ou utilizar os testes em um ambiente MCP, onde a execução e o contexto podem ser controlados por um modelo de linguagem.
+## Prerequisites
 
-## Exemplo de paginação com cursor
+- Node.js (version 16 or higher).
+- npm or yarn.
+- A GitHub personal access token set as the environment variable `GITHUB_TOKEN` (only required when running the GraphQL API test).
 
-O arquivo `tests/mcp-cursor.spec.ts` contém um teste que utiliza a API GraphQL do GitHub para listar repositórios do usuário autenticado paginando via cursor. O teste utiliza o `request.newContext` do Playwright para fazer requisições HTTP assíncronas. Para autenticar, é necessário fornecer um token de acesso pessoal do GitHub via variável de ambiente `GITHUB_TOKEN`.
+## Installation
 
-O fluxo do teste é:
+Clone this repository and install dependencies:
 
-1. Criar um contexto de requisição com cabeçalhos contendo o token.
-2. Enviar uma consulta GraphQL solicitando os primeiros _N_ repositórios e capturar a `endCursor` e `hasNextPage`.
-3. Caso haja mais páginas (`hasNextPage === true`), repetir a consulta usando o `endCursor` como argumento `after`.
-4. Armazenar os nomes dos repositórios e verificar que o total retornado é maior que zero.
+```bash
+npm install
+```
 
-## Estrutura do projeto
+## Running the tests
 
-- `package.json` – dependências e scripts.
-- `playwright.config.ts` – configurações do Playwright, como baseURL e diretório de testes.
-- `tsconfig.json` – configurações do TypeScript.
-- `tests/mcp-cursor.spec.ts` – teste de paginação utilizando a API GraphQL do GitHub.
-- `README.md` – descrição do projeto e instruções de uso.
-
-## Pré‑requisitos
-
-- [Node.js](https://nodejs.org/) (versão 16 ou superior).
-- Token de acesso pessoal do GitHub com permissão de leitura para repositórios (definir na variável de ambiente `GITHUB_TOKEN`).
-
-## Instalação
-
-1. Instale as dependências de desenvolvimento:
-
-   ```bash
-   npm install
-   ```
-
-2. Defina a variável de ambiente `GITHUB_TOKEN` no seu sistema. No Linux/macOS, por exemplo:
-
-   ```bash
-   export GITHUB_TOKEN=seu_token_aqui
-   ```
-
-## Executando os testes
-
-Para executar todos os testes com o Playwright:
+Execute the tests locally:
 
 ```bash
 npx playwright test
 ```
 
-Você também pode rodar somente o teste de paginação:
+Playwright will run in headless mode by default and produce an HTML report. To open the report after the run:
 
 ```bash
-npx playwright test tests/mcp-cursor.spec.ts
+npx playwright show-report
 ```
 
-## Observações
+## Running with MCP
 
-- O token não deve ser commitado no repositório. Utilize variáveis de ambiente ou arquivos locais `.env`.
-- Para executar em um servidor MCP, instale o pacote `@playwright/mcp` globalmente ou utilize a CLI incluída e consulte a documentação para iniciar o servidor.
+To expose this project to an MCP client, you'll need to start an MCP server. For instructions on installing and running the MCP server, refer to the official Playwright MCP documentation. Once the server is running, point your client to the configured endpoint to send tool calls and drive Playwright under the hood.
+
+## Customizing the pagination example
+
+The test in `tests/mcp-cursor.spec.ts` fetches repositories from the GitHub GraphQL API and paginates over the results using the `endCursor` and `hasNextPage` properties. If you prefer to test pagination on a web page such as Amazon, you can modify the test to navigate a search results page, click the "Next" button and assert that the correct items are loaded. Playwright's rich locator and browser APIs make it straightforward to adapt the pattern to any paginated data source.
+
+## Continuous integration
+
+A GitHub Actions workflow is included in `.github/workflows/playwright.yml` to run the tests automatically on each push or pull request. The workflow installs dependencies, downloads the necessary browsers, and executes `npm test` on Ubuntu. It also passes through the `GITHUB_TOKEN` secret so the GraphQL test can authenticate against the GitHub API.
+
+Feel free to fork this repository and experiment with other targets and protocols to expand your test coverage.
