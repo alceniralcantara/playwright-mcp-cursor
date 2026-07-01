@@ -1,7 +1,7 @@
 {
   "name": "playwright-mcp-cursor",
   "version": "1.0.0",
-  "description": "Projeto de testes Playwright demonstrando a paginação com cursor na API GitHub e integração da Model Context Protocol (MCP).",
+  "description": "Playwright project demonstrating cursor-based pagination using an e-commerce site and integration with the Model Context Protocol (MCP).",
   "scripts": {
     "test": "npx playwright test",
     "install:playwright": "npx playwright install"
