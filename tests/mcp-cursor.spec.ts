@@ -1,31 +1,41 @@
 import { test, expect } from '@playwright/test';
-// Exemplo de teste de paginacao com cursor na API do GitHub usando GraphQL
 
-test('should fetch repositories with cursor pagination', async ({ request }) => {
-  // Pula o teste se o token nao estiver definido
-  test.skip(!process.env.GITHUB_TOKEN, 'GITHUB_TOKEN environment variable is required');
+test.describe('Pagination and e-commerce flows', () => {
+  test('should paginate products from dummyjson API with skip parameter', async ({ request }) => {
+    const limit = 10;
+    let skip = 0;
+    const titles: string[] = [];
+    for (let i = 0; i < 2; i++) {
+      const response = await request.get('https://dummyjson.com/products?limit=' + limit + '&skip=' + skip);
+      expect(response.ok()).toBeTruthy();
+      const body = await response.json();
+      titles.push(...body.products.map((p: any) => p.title));
+      skip += limit;
+    }
+    expect(titles.length).toBeGreaterThan(0);
+  });
 
-  const perPage = 5;
-  const org = 'microsoft';
-  let hasNextPage = true;
-  let endCursor: string | null = null;
-  const names: string[] = [];
-const query = "query ($org: String!, $first: Int!, $after: String) { organization(login: $org) { repositories(first: $first, after: $after, privacy: PUBLIC, orderBy: { field: NAME, direction: ASC }) { nodes { name } pageInfo { endCursor hasNextPage } } } }";
+  test('should browse and add a laptop to cart on Demoblaze', async ({ page }) => {
+    await page.goto('/');
+    await page.click('a:has-text("Laptops")');
+    await page.waitForSelector('.card-title a');
+    const firstProduct = page.locator('.card-title a').first();
+    const productName = await firstProduct.innerText();
+    await firstProduct.click();
+    page.once('dialog', dialog => dialog.accept());
+    await page.click('a:has-text("Add to cart")');
+    await page.click('#cartur');
+    await expect(page.locator('td:has-text("' + productName + '")')).toBeVisible();
+  });
 
-
-
-  // Busca paginas ate obter pelo menos duas paginas ou nao haver proxima
-  while (hasNextPage && names.length < perPage * 2) {
-    const variables = { org, first: perPage, after: endCursor };
-    const response = await request.post('', { data: { query, variables } });
-    expect(response.ok()).toBeTruthy();
-
-    const body = await response.json();
-    const repoInfo = body.data.organization.repositories;
-    names.push(...repoInfo.nodes.map((n: any) => n.name));
-    hasNextPage = repoInfo.pageInfo.hasNextPage;
-    endCursor = repoInfo.pageInfo.endCursor;
-  }
-
-  expect(names.length).toBeGreaterThan(0);
+  test('should navigate multiple pages of laptops on Demoblaze', async ({ page }) => {
+    await page.goto('/');
+    await page.click('a:has-text("Laptops")');
+    await page.waitForSelector('.card-title a');
+    const firstPageTitles = await page.locator('.card-title a').allTextContents();
+    await page.click('#next2');
+    await page.waitForTimeout(1000);
+    const secondPageTitles = await page.locator('.card-title a').allTextContents();
+    expect(secondPageTitles).not.toEqual(firstPageTitles);
+  });
 });
