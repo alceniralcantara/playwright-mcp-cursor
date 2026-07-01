@@ -4,15 +4,15 @@ export default defineConfig({
   testDir: './tests',
   timeout: 60000,
   use: {
-    baseURL: 'https://api.github.com/graphql',
-    extraHTTPHeaders: {
-      Authorization: process.env.GITHUB_TOKEN ? `Bearer ${process.env.GITHUB_TOKEN}` : undefined,
-      'Content-Type': 'application/json',
-    },
+    baseURL: 'https://www.demoblaze.com',
     headless: true,
+    trace: 'on-first-retry',
+    video: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'playwright-report' }],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ['allure-playwright'],
   ],
 });
