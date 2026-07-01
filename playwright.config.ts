@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './tests',
   timeout: 60000,
   use: {
-    baseURL: 'https://www.demoblaze.com',
+    baseURL: 'https://books.toscrape.com',
     headless: true,
     trace: 'on-first-retry',
     video: 'retain-on-failure',
